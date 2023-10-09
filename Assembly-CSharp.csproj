@@ -59,8 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Main.cs" />
+    <Compile Include="Assets\Scripts\GameEngine.cs" />
     <Compile Include="Assets\Scripts\Resolutions.cs" />
-    <Compile Include="Assets\Scripts\Level1.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
