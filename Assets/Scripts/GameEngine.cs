@@ -10,8 +10,7 @@ public class GameEngine : MonoBehaviour
     [SerializeField] private GameObject beforeStartDialog;
     [SerializeField] private GameObject endDialog;
     [SerializeField] private GameObject failDialog;
-    [SerializeField] private Sprite[] colors;
-    [SerializeField] private Sprite defaultColor;
+    [SerializeField] private Image[] colors;
     [SerializeField] private Image[] colorImages;
     [SerializeField] private int[] selectedColors;
     [SerializeField] private float startTime;
@@ -24,6 +23,9 @@ public class GameEngine : MonoBehaviour
     [SerializeField] private Text endResultText;
     [SerializeField] private Text endCoinText;
     [SerializeField] private Text endTimeText;
+    [SerializeField] private Text continueLifeText;
+    [SerializeField] private Text continueCoinText;
+    [SerializeField] private Text shopCoinText;
     [SerializeField] private Text countDownTimeText;
     [SerializeField] private Text alertText;
 
@@ -41,12 +43,15 @@ public class GameEngine : MonoBehaviour
     void Start()
     {        
         RandomColors();
+        startTime = 10f;
         timeRemaining = startTime;
         isStarted = false;
 
         levelIndex = PlayerPrefs.GetInt("LEVEL_PASSED");
         coinNum = PlayerPrefs.GetInt("COIN_OWN");
-        currentCoinText.text = coinNum.ToString();
+        currentCoinText.text = coinNum.ToString();    
+        Time.timeScale = 1;
+        colorIndex = 100;
     }
 
     void Update()
@@ -69,8 +74,7 @@ public class GameEngine : MonoBehaviour
             if(Input.GetMouseButtonDown(0))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                colorIndex = 0;    
+                RaycastHit hit;                   
 
                 if (Physics.Raycast(ray, out hit))
                 {
@@ -94,64 +98,70 @@ public class GameEngine : MonoBehaviour
                     {
                         panelIndex = int.Parse(hit.transform.gameObject.name.Split(" ")[1]);
 
-                        if (colorIndex == selectedColors[panelIndex])
-                        {                            
-                            colorImages[panelIndex].sprite = colors[colorIndex];
-                            correctNum++;
-
-                            // Pass level
-                            if (correctNum >= totalNum)
+                        if(colorIndex != 100)
+                        {
+                            if (colorIndex == selectedColors[panelIndex])
                             {
-                                gameStatus = 0;
-                                Time.timeScale = 0;
-                                endDialog.SetActive(true);
-                                endTimeText.text = countDownTimeText.text;
-                                
-                                // Compare with current level index
-                                if(levelIndex == currentLevelIndex)
-                                {
-                                    levelIndex++;
-                                    PlayerPrefs.SetInt("LEVEL_PASSED", levelIndex);
-                                }                                                                
+                                colorImages[panelIndex].color = colors[colorIndex].color;
+                                colorImages[panelIndex].GetComponent<Collider>().enabled = false;
+                                correctNum++;
 
-                                // Players can get coins according to time
-                                if (180f - timeRemaining <= 60f)
+                                // Pass level
+                                if (correctNum >= totalNum)
                                 {
-                                    endResultText.text = "Best";
-                                    endCoinText.text = "3";
-                                    coinNum += 3;                                    
-                                }                            
-                                else if(timeRemaining <= 60f)
-                                {
-                                    endResultText.text = "Good";
-                                    endCoinText.text = "1";
-                                    coinNum += 1;
-                                }
-                                else
-                                {
-                                    endResultText.text = "Better";
-                                    endCoinText.text = "2";
-                                    coinNum += 2;
-                                }
+                                    gameStatus = 0;
+                                    Time.timeScale = 0;
+                                    endDialog.SetActive(true);
+                                    endTimeText.text = countDownTimeText.text;
 
-                                PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                                    // Compare with current level index
+                                    if (levelIndex == currentLevelIndex)
+                                    {
+                                        levelIndex++;
+                                        PlayerPrefs.SetInt("LEVEL_PASSED", levelIndex);
+                                    }
+
+                                    // Players can get coins according to time
+                                    if (180f - timeRemaining <= 60f)
+                                    {
+                                        endResultText.text = "Best";
+                                        endCoinText.text = "3";
+                                        coinNum += 3;
+                                    }
+                                    else if (timeRemaining <= 60f)
+                                    {
+                                        endResultText.text = "Good";
+                                        endCoinText.text = "1";
+                                        coinNum += 1;
+                                    }
+                                    else
+                                    {
+                                        endResultText.text = "Better";
+                                        endCoinText.text = "2";
+                                        coinNum += 2;
+                                    }
+
+                                    PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                                }
                             }
-                        }
-                        else
-                        {                            
-                            lifeNum--;
-                            lifeCountText.text = lifeNum.ToString();
-                            StopAllCoroutines();
-                            StartCoroutine(DelayToShowAlert("Wrong!"));
-
-                            //Fail level
-                            if(lifeNum == 0)
+                            else
                             {
-                                failDialog.SetActive(true);
+                                lifeNum--;
+                                lifeCountText.text = lifeNum.ToString();
+                                StopAllCoroutines();
+                                StartCoroutine(DelayToShowAlert("Wrong!"));
+
+                                //Fail level
+                                if (lifeNum == 0)
+                                {
+                                    failDialog.SetActive(true);
+                                }
                             }
                         }
                     }
-                }                
+                }
+
+                colorIndex = 100;
             }
         }
     }    
@@ -159,117 +169,27 @@ public class GameEngine : MonoBehaviour
     // Arrange colors
     public void RandomColors()
     {
-        switch (currentLevelIndex)
-        {
-            case 1:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 2:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 3:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 4:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 5:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 6:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 7:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 8:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 9:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 10:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 11:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 12:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 13:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 14:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 15:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-            case 16:
-                {
-                    totalNum = 2;
-                    lifeNum = 4;
-                    break;
-                }
-        }
+        lifeNum = 4;
+        totalNum = colorImages.Length;
 
         for (int i = 0; i < totalNum; i++)
         {
             selectedColors[i] = (System.DateTime.Now.Millisecond * UnityEngine.Random.Range(5, 15)) % 8;
-            colorImages[i].sprite = colors[selectedColors[i]];           
+            colorImages[i].color = colors[selectedColors[i]].color;           
         }
 
-        if (selectedColors[0] == selectedColors[1])
+        // Check repeated colors
+        for (int i = 0; i < totalNum - 1; i++)
         {
-            selectedColors[1] = (selectedColors[1] + 1) % 8;
-            colorImages[1].sprite = colors[selectedColors[1]];
-        }        
+            for (int j = i + 1; j < totalNum; j++)
+            {
+                if (selectedColors[i] == selectedColors[j])
+                {
+                    selectedColors[j] = (selectedColors[j] + 1) % 8;
+                    colorImages[j].color = colors[selectedColors[j]].color;
+                }
+            }
+        }      
     }
 
     // Start game
@@ -278,12 +198,13 @@ public class GameEngine : MonoBehaviour
         if (!isStarted)
         {
             isStarted = true;
-            startTime += 8f;
+            startTime += 183f;
             timeRemaining = startTime;
 
             for (int i = 0; i < colorImages.Length; i++)
             {
-                colorImages[i].sprite = defaultColor;
+                colorImages[i].color = Color.white;
+                colorImages[i].GetComponent<Collider>().enabled = true;
             }
 
             StartCoroutine(DelayToStartGame());     
@@ -294,6 +215,61 @@ public class GameEngine : MonoBehaviour
     public void NextLevel()
     {
         SceneManager.LoadScene("Level " + (currentLevelIndex + 1));
+    }
+
+    public void RefreshCurrentToContinue()
+    {
+        continueLifeText.text = lifeCountText.text;
+        continueCoinText.text = currentCoinText.text;
+    }
+
+
+    // Continue Dialog
+    public void RefreshContinueToCurrent()
+    {
+        lifeCountText.text = continueLifeText.text;
+        currentCoinText.text = continueCoinText.text;
+    }
+
+    public void AddTime30()
+    {
+
+    }
+
+    public void AddTime90()
+    {
+
+    }
+
+    public void AddTime180()
+    {
+
+    }
+
+    public void AddLife()
+    {
+
+    }
+
+    public void GoToShopBtnClick()
+    {
+        shopCoinText.text = currentCoinText.text;
+    }
+
+    // Shop Dialog
+    public void ShopBackBtnClick()
+    {
+        continueCoinText.text = shopCoinText.text;
+    }
+
+    public void PurchaseCoins100()
+    {
+
+    }
+
+    public void PurchaseCoins40()
+    {
+
     }
 
     public void TryAgain()
@@ -316,7 +292,7 @@ public class GameEngine : MonoBehaviour
     }
 
     IEnumerator DelayToShowAlert(string str)
-    {        
+    {
         alertText.transform.gameObject.SetActive(true);
         alertText.text = str;
         yield return new WaitForSeconds(2f);
@@ -337,8 +313,8 @@ public class GameEngine : MonoBehaviour
             else
             {
                 // End game
-                gameStatus = 0;        
-                Time.timeScale = 0;
+                gameStatus = 0;
+                Time.timeScale = 0;                
                 failDialog.SetActive(true);            
             }                        
         }
