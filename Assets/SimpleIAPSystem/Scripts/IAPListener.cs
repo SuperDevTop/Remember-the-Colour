@@ -4,6 +4,7 @@
  * 	otherwise make available to any third party the Service or the Content. */
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SIS
 {
@@ -111,9 +112,49 @@ namespace SIS
                     ShowMessage("Secret product unlocked!");
                     break;
 
+                case "coin100":
+                    PurchaseCoin100();
+                    ShowMessage("Purchase 100 coins.");
+                    break;
+
+                case "coin40":
+                    PurchaseCoin40();
+                    ShowMessage("Purchase 40 coins.");
+                    break;
+
                 default:
                     ShowMessage("Product (" + productID + ") bought!");
                     break;
+            }
+        }
+
+        public void PurchaseCoin100()
+        {
+            PlayerPrefs.SetInt("COIN_OWN", (PlayerPrefs.GetInt("COIN_OWN") + 100));
+
+            if (SceneManager.GetActiveScene().name == "Main")
+            {
+                Main.instance.shopCoinText.text = PlayerPrefs.GetInt("COIN_OWN").ToString();
+            }
+            else
+            {
+                GameEngine.instance.coinNum += 100;
+                GameEngine.instance.shopCoinText.text = GameEngine.instance.coinNum.ToString();
+            }                                                
+        }
+
+        public void PurchaseCoin40()
+        {
+            PlayerPrefs.SetInt("COIN_OWN", (PlayerPrefs.GetInt("COIN_OWN") + 40));
+
+            if (SceneManager.GetActiveScene().name == "Main")
+            {
+                Main.instance.shopCoinText.text = PlayerPrefs.GetInt("COIN_OWN").ToString();
+            }
+            else
+            {
+                GameEngine.instance.coinNum += 40;
+                GameEngine.instance.shopCoinText.text = GameEngine.instance.coinNum.ToString();
             }
         }
 

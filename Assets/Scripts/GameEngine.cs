@@ -7,11 +7,15 @@ using UnityEngine.SceneManagement;
 
 public class GameEngine : MonoBehaviour
 {
+    public static GameEngine instance;
+    
     [SerializeField] private GameObject beforeStartDialog;
     [SerializeField] private GameObject endDialog;
     [SerializeField] private GameObject failDialog;
+    [SerializeField] private GameObject continueDialog;
     [SerializeField] private Image[] colors;
     [SerializeField] private Image[] colorImages;
+    [SerializeField] private Button skipBtn;
     [SerializeField] private int[] selectedColors;
     [SerializeField] private float startTime;
     [SerializeField] private float timeRemaining;
@@ -25,14 +29,15 @@ public class GameEngine : MonoBehaviour
     [SerializeField] private Text endTimeText;
     [SerializeField] private Text continueLifeText;
     [SerializeField] private Text continueCoinText;
-    [SerializeField] private Text shopCoinText;
+    public Text shopCoinText;
     [SerializeField] private Text countDownTimeText;
     [SerializeField] private Text alertText;
 
     private int colorIndex;
     private int panelIndex;
-    
-    private int coinNum;
+
+    private float skipedTime = 0;
+    public int coinNum;
     private int totalNum;
     private int correctNum;
     private int lifeNum;
@@ -41,9 +46,11 @@ public class GameEngine : MonoBehaviour
     float levelTagTimer = 0.5f;
 
     void Start()
-    {        
+    {
+        instance = this;
+
         RandomColors();
-        startTime = 10f;
+        startTime = 60f;
         timeRemaining = startTime;
         isStarted = false;
 
@@ -155,6 +162,8 @@ public class GameEngine : MonoBehaviour
                                 if (lifeNum == 0)
                                 {
                                     failDialog.SetActive(true);
+                                    gameStatus = 0;
+                                    Time.timeScale = 0;
                                 }
                             }
                         }
@@ -198,7 +207,7 @@ public class GameEngine : MonoBehaviour
         if (!isStarted)
         {
             isStarted = true;
-            startTime += 183f;
+            startTime = startTime + 183f - skipedTime;         
             timeRemaining = startTime;
 
             for (int i = 0; i < colorImages.Length; i++)
@@ -211,6 +220,13 @@ public class GameEngine : MonoBehaviour
         }               
     }
 
+    public void SkipBtnClick()
+    {
+        skipedTime = float.Parse(countDownTimeText.text.Split(":")[1]);
+        StartGame();
+        skipBtn.gameObject.SetActive(false);
+    }
+
     // Go to next level
     public void NextLevel()
     {
@@ -221,6 +237,7 @@ public class GameEngine : MonoBehaviour
     {
         continueLifeText.text = lifeCountText.text;
         continueCoinText.text = currentCoinText.text;
+        alertText.gameObject.SetActive(false);
     }
 
 
@@ -229,26 +246,112 @@ public class GameEngine : MonoBehaviour
     {
         lifeCountText.text = continueLifeText.text;
         currentCoinText.text = continueCoinText.text;
+        alertText.gameObject.SetActive(false);
     }
 
     public void AddTime30()
     {
-
+        if(lifeNum > 0)
+        {
+            if (coinNum >= 15)
+            {
+                coinNum -= 15;
+                PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                currentCoinText.text = coinNum.ToString();
+                startTime += 30;
+                gameStatus = 1;
+                Time.timeScale = 1;
+                failDialog.SetActive(false);
+                continueDialog.SetActive(false);
+            }
+            else
+            {
+                StartCoroutine(DelayToShowAlert("Not enough coin."));
+            }
+        }
+        else
+        {
+            StartCoroutine(DelayToShowAlert("No life"));
+        }                
     }
 
     public void AddTime90()
     {
-
+        if (lifeNum > 0)
+        {
+            if (coinNum >= 30)
+            {
+                coinNum -= 30;
+                PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                currentCoinText.text = coinNum.ToString();
+                startTime += 90;
+                gameStatus = 1;
+                Time.timeScale = 1;
+                failDialog.SetActive(false);
+                continueDialog.SetActive(false);
+            }
+            else
+            {
+                StartCoroutine(DelayToShowAlert("Not enough coin."));
+            }
+        }
+        else
+        {
+            StartCoroutine(DelayToShowAlert("No life"));
+        }
     }
 
     public void AddTime180()
     {
-
+        if (lifeNum > 0)
+        {
+            if (coinNum >= 60)
+            {
+                coinNum -= 60;
+                PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                currentCoinText.text = coinNum.ToString();
+                startTime += 180;
+                gameStatus = 1;
+                Time.timeScale = 1;
+                failDialog.SetActive(false);
+                continueDialog.SetActive(false);
+            }
+            else
+            {
+                StartCoroutine(DelayToShowAlert("Not enough coin."));
+            }
+        }
+        else
+        {
+            StartCoroutine(DelayToShowAlert("No life"));
+        }
     }
 
     public void AddLife()
     {
-
+        if(timeRemaining <= 0)
+        {
+            StartCoroutine(DelayToShowAlert("You need to add time"));
+        }
+        else
+        {
+            if(coinNum < 100)
+            {
+                StartCoroutine(DelayToShowAlert("Not enough coin"));
+            }
+            else
+            {
+                coinNum -= 100;
+                PlayerPrefs.SetInt("COIN_OWN", coinNum);
+                currentCoinText.text = coinNum.ToString();
+                lifeNum += 4;
+                lifeCountText.text = lifeNum.ToString();          
+                gameStatus = 1;
+                Time.timeScale = 1;
+                failDialog.SetActive(false);
+                continueDialog.SetActive(false);
+            }
+        }
     }
 
     public void GoToShopBtnClick()
@@ -260,16 +363,6 @@ public class GameEngine : MonoBehaviour
     public void ShopBackBtnClick()
     {
         continueCoinText.text = shopCoinText.text;
-    }
-
-    public void PurchaseCoins100()
-    {
-
-    }
-
-    public void PurchaseCoins40()
-    {
-
     }
 
     public void TryAgain()

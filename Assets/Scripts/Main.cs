@@ -6,11 +6,16 @@ using UnityEngine.UI;
 
 public class Main : MonoBehaviour
 {
+    public static Main instance;
     [SerializeField] private Button[] levelBtns;
+    public Text shopCoinText;
 
     void Start()
     {
-        if(PlayerPrefs.GetInt("LEVEL_PASSED") == 0)
+        instance = this;
+        shopCoinText.text = PlayerPrefs.GetInt("COIN_OWN").ToString();
+
+        if (PlayerPrefs.GetInt("LEVEL_PASSED") == 0)
         {
             PlayerPrefs.SetInt("LEVEL_PASSED", 1);
         }
@@ -29,5 +34,10 @@ public class Main : MonoBehaviour
     public void LevelSelect(string levelStr)
     {
         SceneManager.LoadScene("Level " + levelStr);
+    }
+
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 }
